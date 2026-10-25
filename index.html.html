@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Estacas · Dimensionamento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: bancada de projeto — coluna de dados à esquerda (fixa no desktop), prancha de resultados à direita com abas */
+:root{
+  --bg:#eef0ec; --panel:#ffffff; --panel2:#f6f7f4; --ink:#1c2220; --muted:#5d6762; --line:#d5d9d2;
+  --accent:#1f5f8b; --accent-ink:#ffffff; --steel:#8b6a2b; --dim:#c0392b;
+  --ok:#2f7d4f; --ok-bg:#e3f1e8; --warn:#9a6a00; --warn-bg:#fbf0d6; --bad:#b0302a; --bad-bg:#f9e1df;
+  --areia:#d8b768; --argila:#a5735c; --silte:#97a277; --concrete:#b9bdb8;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141816; --panel:#1c211f; --panel2:#222826; --ink:#e5e9e4; --muted:#9aa49e; --line:#343b37;
+  --accent:#6aa6d4; --accent-ink:#0d1a24; --steel:#c99b4a; --dim:#ef6f62;
+  --ok:#6cc290; --ok-bg:#1d3326; --warn:#e2b450; --warn-bg:#352c16; --bad:#f07a70; --bad-bg:#3a1f1d;
+  --areia:#b89a52; --argila:#946452; --silte:#82905f; --concrete:#6b716d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141816; --panel:#1c211f; --panel2:#222826; --ink:#e5e9e4; --muted:#9aa49e; --line:#343b37;
+  --accent:#6aa6d4; --accent-ink:#0d1a24; --steel:#c99b4a; --dim:#ef6f62;
+  --ok:#6cc290; --ok-bg:#1d3326; --warn:#e2b450; --warn-bg:#352c16; --bad:#f07a70; --bad-bg:#3a1f1d;
+  --areia:#b89a52; --argila:#946452; --silte:#82905f; --concrete:#6b716d; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+.app{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:960px){.app{grid-template-columns:minmax(0,1fr)}}
+header.top{max-width:1440px;margin:0 auto 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+header.top h1{font-size:26px;font-weight:800;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--muted);font-size:13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+aside.inputs{position:sticky;top:max(12px,env(safe-area-inset-top,0px));max-height:calc(100vh - 24px);overflow:auto;padding:14px}
+@media (max-width:960px){aside.inputs{position:static;max-height:none}}
+fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:8px}
+legend{font-family:var(--f-display);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label.f{display:grid;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+label.f span.u{color:var(--muted);opacity:.8}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
+input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:6px 10px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button:hover{border-color:var(--accent)}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.ex-badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--warn-bg);color:var(--warn);border-radius:99px;padding:2px 8px}
+/* SPT table */
+.spt-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.spt-head,.spt-row{display:grid;grid-template-columns:44px 58px minmax(0,1fr) 10px;gap:6px;align-items:center;padding:3px 6px}
+.spt-head{background:var(--panel2);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-block:6px}
+.spt-body{max-height:300px;overflow:auto}
+.spt-row{border-top:1px solid var(--line)}
+.spt-row .z{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.spt-row input,.spt-row select{padding:3px 6px;font-size:13px}
+.spt-row .sw{width:10px;height:22px;border-radius:2px}
+.spt-row.tip{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.row-actions{display:flex;flex-wrap:wrap;gap:6px}
+details.paste summary{cursor:pointer;font-size:12px;color:var(--accent)}
+details.paste textarea{margin-top:6px;font-family:var(--f-mono);font-size:12px;height:90px}
+/* Results */
+main.results{min-width:0;display:grid;gap:16px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);padding:0 4px}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:10px 12px;font-family:var(--f-display);font-weight:700;color:var(--muted)}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabpanel{padding:16px;display:grid;gap:16px;min-width:0}
+.status{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:4px 10px;font-size:12.5px;font-weight:600}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px}
+@media (max-width:1180px){.summary{grid-template-columns:minmax(0,1fr)}}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kv div{background:var(--panel);padding:10px 12px;min-width:0}
+.kv dt{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kv dd{margin:2px 0 0;font-family:var(--f-mono);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kv dd small{font-size:12px;color:var(--muted);font-family:var(--f-body)}
+.kv .wide{grid-column:1/-1}
+.callout{border-left:3px solid var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:0 6px 6px 0;font-size:13px}
+.callout.bad{border-color:var(--bad);background:var(--bad-bg)}
+.callout ul{margin:4px 0 0;padding-left:18px}
+.viewer{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2);min-height:440px;height:56vh;max-height:640px}
+.viewer canvas{display:block;width:100%;height:100%}
+.viewer .vbar{position:absolute;left:8px;top:8px;display:flex;flex-wrap:wrap;gap:6px;z-index:2}
+.viewer .vbar button{font-size:12px;padding:4px 8px;background:color-mix(in srgb,var(--panel) 85%,transparent)}
+.viewer .vbar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.viewer .legend3d{position:absolute;right:8px;bottom:8px;font-size:11.5px;color:var(--muted);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:4px 8px;border-radius:6px}
+.viewer .err{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);padding:20px;text-align:center}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--panel2);font-weight:600;color:var(--muted);font-size:11.5px;position:sticky;top:0}
+td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.l,th.l{text-align:left;font-family:var(--f-body)}
+tr.sel td{background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:600}
+td.okc{color:var(--ok)} td.badc{color:var(--bad)}
+tr.grp th{text-align:center;border-bottom:1px solid var(--line)}
+.chart{width:100%;height:auto;display:block}
+.memo{display:grid;gap:14px}
+.memo section{display:grid;gap:6px}
+.memo h3{font-size:15px}
+.memo .eq{font-family:var(--f-mono);font-size:13px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:pre}
+.memo p{margin:0;max-width:75ch}
+.detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.svgbox{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow-x:auto}
+.svgbox svg{display:block;margin:0 auto}
+.foot{font-size:12px;color:var(--muted);max-width:90ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <h1>Estacas · Dimensionamento</h1>
+  <p>Capacidade de carga (Décourt-Quaresma e Aoki-Velloso), armadura conforme NBR 6122:2019 e detalhamento com modelo 3D.</p>
+</header>
+
+<div class="app">
+<aside class="inputs panel" aria-label="Dados de entrada">
+  <p id="exampleNote" class="hint" style="margin-bottom:10px"><span class="ex-badge">Exemplo</span> Os dados abaixo são um exemplo. Troque pela sua sondagem e seus esforços.</p>
+
+  <fieldset>
+    <legend>Estaca</legend>
+    <label class="f">Tipo de estaca<select id="pileType"></select></label>
+    <div class="grid2">
+      <label class="f">Diâmetro <span class="u">(cm)</span><input id="diam" type="number" min="10" max="250" step="1" list="diamList"><datalist id="diamList"></datalist></label>
+      <label class="f">Profundidade testada <span class="u">(m)</span><input id="depth" type="number" min="1" step="1"></label>
+    </div>
+    <div class="grid2">
+      <label class="f">Fator de segurança global<input id="fs" type="number" min="1" step="0.1"></label>
+      <label class="f">Embutimento no bloco <span class="u">(cm)</span><input id="embut" type="number" min="0" step="1"></label>
+    </div>
+    <label class="f">Resistência de ponta<select id="pontaMode">
+      <option value="manter">Manter resistência de ponta</option>
+      <option value="limitar">Limitar a ponta a 95% do atrito lateral (contato garantido)</option>
+      <option value="desprezar">Desprezar a ponta (sem garantia de contato)</option>
+    </select></label>
+    <label class="f">Método usado no projeto<select id="method">
+      <option value="menor">Mescla desfavorável (menor dos dois)</option>
+      <option value="media">Média dos métodos</option>
+      <option value="dq">Décourt-Quaresma</option>
+      <option value="av">Aoki-Velloso</option>
+    </select></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Esforços característicos no topo</legend>
+    <div class="grid3">
+      <label class="f">N <span class="u">(kN)</span><input id="Nk" type="number" step="1" title="Compressão positiva, tração negativa"></label>
+      <label class="f">H <span class="u">(kN)</span><input id="Hk" type="number" min="0" step="1"></label>
+      <label class="f">M <span class="u">(kN·m)</span><input id="Mk" type="number" min="0" step="0.5"></label>
+    </div>
+    <div class="grid2">
+      <label class="f">γf (majoração)<input id="gf" type="number" min="1" step="0.05"></label>
+      <p class="hint" style="align-self:end">N positivo = compressão; negativo = tração.</p>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Concreto e aço</legend>
+    <div class="grid2">
+      <label class="f">fck <span class="u">(MPa)</span><input id="fck" type="number" min="15" max="50" step="5"></label>
+      <label class="f">Classe de agressividade<select id="caa"><option value="0">CAA I ou II</option><option value="1">CAA III ou IV</option></select></label>
+    </div>
+    <div class="grid3">
+      <label class="f">Cobrimento <span class="u">(cm)</span><input id="cob" type="number" min="2" step="0.5"></label>
+      <label class="f">Ø longitudinal<select id="phiL"><option value="auto">Automático</option><option>10</option><option>12.5</option><option>16</option><option>20</option><option>25</option><option>32</option></select></label>
+      <label class="f">Ø estribo<select id="phiT"><option>5</option><option>6.3</option><option>8</option><option>10</option></select></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Sondagem SPT (metro a metro)</legend>
+    <div class="spt-wrap">
+      <div class="spt-head"><span style="text-align:right">Prof.</span><span>NSPT</span><span>Solo</span><span></span></div>
+      <div class="spt-body" id="sptBody"></div>
+    </div>
+    <div class="row-actions">
+      <button type="button" id="addRow">+ Metro</button>
+      <button type="button" id="delRow">− Último metro</button>
+      <button type="button" id="fillSoil">Repetir solo para baixo</button>
+    </div>
+    <details class="paste">
+      <summary>Colar da planilha</summary>
+      <p class="hint">Uma linha por metro: NSPT e, se quiser, o tipo de solo (separados por tab ou ponto e vírgula). Ex.: <code>7;Argila arenosa</code></p>
+      <textarea id="pasteBox" aria-label="Colar sondagem"></textarea>
+      <button type="button" id="pasteApply">Aplicar</button>
+    </details>
+  </fieldset>
+
+  <div class="row-actions">
+    <button type="button" id="loadExample">Recarregar exemplo</button>
+    <button type="button" id="loadLesson">Exemplo da aula (escavada Ø30)</button>
+  </div>
+</aside>
+
+<main class="results">
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-resumo" aria-selected="true" data-tab="resumo">Resumo e 3D</button>
+      <button role="tab" id="t-cap" aria-selected="false" data-tab="cap">Capacidade por profundidade</button>
+      <button role="tab" id="t-arm" aria-selected="false" data-tab="arm">Memória da armadura</button>
+      <button role="tab" id="t-det" aria-selected="false" data-tab="det">Detalhamento</button>
+    </div>
+
+    <section class="tabpanel" id="p-resumo" role="tabpanel">
+      <div class="status" id="statusPills"></div>
+      <div id="alerts"></div>
+      <div class="summary">
+        <div style="display:grid;gap:12px;align-content:start;min-width:0">
+          <dl class="kv" id="kvGeo" style="margin:0"></dl>
+          <dl class="kv" id="kvStruct" style="margin:0"></dl>
+        </div>
+        <div class="viewer" id="viewer">
+          <div class="vbar">
+            <button type="button" data-view="cage">Ver armadura</button>
+            <button type="button" data-view="all">Estaca inteira</button>
+            <button type="button" id="tgConcrete" aria-pressed="true">Concreto</button>
+            <button type="button" id="tgSoil" aria-pressed="true">Solo</button>
+          </div>
+          <div class="legend3d">Arraste para girar · role para aproximar</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpanel" id="p-cap" role="tabpanel" hidden>
+      <div class="svgbox" id="profileChart"></div>
+      <div class="tblwrap" id="capTable"></div>
+      <p class="foot" id="capFoot"></p>
+    </section>
+
+    <section class="tabpanel" id="p-arm" role="tabpanel" hidden>
+      <div class="memo" id="memo"></div>
+    </section>
+
+    <section class="tabpanel" id="p-det" role="tabpanel" hidden>
+      <div class="detail">
+        <div class="svgbox" id="elevSvg"></div>
+        <div style="display:grid;gap:16px;align-content:start;min-width:0">
+          <div class="svgbox" id="secSvg"></div>
+          <div class="tblwrap" id="barTable"></div>
+          <div class="tblwrap" id="matTable"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <p class="foot">Ferramenta de apoio ao projeto. As fórmulas e tabelas seguem as planilhas e aulas de referência (Décourt-Quaresma, Aoki-Velloso, Tabela 4 da NBR 6122:2019, tabela de Rocha, 1987). Confira os resultados antes de usar em projeto.</p>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+/* ---------------- Tabelas ---------------- */
+// g: 0 areia, 1 argila, 2 silte · kdq: K Décourt (kN/m²) · kav/aav: K e α de Aoki-Velloso
+const SOILS=[
+ {n:"Areia",g:0,kdq:400,kav:1000,aav:.014},{n:"Areia argilosa",g:0,kdq:400,kav:600,aav:.03},
+ {n:"Areia argilo-siltosa",g:0,kdq:400,kav:500,aav:.028},{n:"Areia silto-argilosa",g:0,kdq:400,kav:700,aav:.024},
+ {n:"Areia siltosa",g:0,kdq:400,kav:800,aav:.02},{n:"Argila",g:1,kdq:120,kav:200,aav:.06},
+ {n:"Argila arenosa",g:1,kdq:120,kav:350,aav:.024},{n:"Argila areno-siltosa",g:1,kdq:120,kav:300,aav:.028},
+ {n:"Argila silto-arenosa",g:1,kdq:120,kav:330,aav:.03},{n:"Argila siltosa",g:1,kdq:120,kav:220,aav:.04},
+ {n:"Silte",g:2,kdq:200,kav:400,aav:.03},{n:"Silte areno-argiloso",g:2,kdq:250,kav:450,aav:.028},
+ {n:"Silte arenoso",g:2,kdq:250,kav:550,aav:.022},{n:"Silte argilo-arenoso",g:2,kdq:200,kav:250,aav:.03},
+ {n:"Silte argiloso",g:2,kdq:200,kav:230,aav:.034}];
+const S=(a,b,c)=>[a,b,c];
+// a/b: α e β de Décourt por grupo de solo · F1/F2 de Aoki-Velloso · t4: Tabela 4 NBR 6122 (CAA I-II / III-IV)
+const PILES=[
+ {n:"Escavada com lama bentonítica",a:S(.5,.85,.6),b:S(.6,.9,.75),F1:3.5,F2:4.5,fck:[30,40],gc:[2.7,3.6],sig:6,Lmin:4,d:[60,70,80,90,100,110,120,130,140,150,160,170,180,190,200],ponta:"limitar"},
+ {n:"Escavada grande diâmetro",a:S(.5,.85,.6),b:S(.5,.8,.65),F1:3.5,F2:7,fck:[25,40],gc:[3.1,5],sig:5,Lmin:2,d:[60,70,80,90,100,110,120,130,140,150,160,170,180,190,200],ponta:"limitar"},
+ {n:"Escavada pequeno diâmetro",a:S(.5,.85,.6),b:S(.5,.8,.65),F1:3,F2:6,fck:[25,40],gc:[3.1,5],sig:5,Lmin:2,d:[25,30,35,40,45,50],ponta:"limitar"},
+ {n:"Franki - fuste apiloado",a:S(1,1,1),b:S(1,1,1),F1:2.3,F2:3,fck:[20,20],gc:[1.8,1.8],sig:null,Lmin:"integral",d:[30,35,40,45,52,60],ponta:"manter"},
+ {n:"Franki - fuste vibrado",a:S(1,1,1),b:S(1,1,1),F1:2.3,F2:3.2,fck:[20,20],gc:[1.8,1.8],sig:null,Lmin:"integral",d:[30,35,40,45,52,60],ponta:"manter"},
+ {n:"Hélice contínua",a:S(.3,.3,.3),b:S(1,1,1),F1:3,F2:3.8,fck:[30,40],gc:[2.7,3.6],sig:6,Lmin:4,d:[25,30,35,40,50,60,70,80,90,100],ponta:"limitar"},
+ {n:"Metálica",a:S(1,1,1),b:S(1,1,1),F1:1.75,F2:3.5,fck:null,gc:null,sig:null,Lmin:null,d:[],ponta:"manter",noConcrete:true},
+ {n:"Pré-moldada cravada",a:S(1,1,1),b:S(1,1,1),F1:2.5,F2:3.5,fck:[40,40],gc:[1.4,1.4],sig:5,Lmin:"integral",d:[20,23,26,33,38,42,50,60,70],ponta:"manter",precast:true},
+ {n:"Pré-moldada prensada",a:S(1,1,1),b:S(1,1,1),F1:1.2,F2:2.3,fck:[40,40],gc:[1.4,1.4],sig:5,Lmin:"integral",d:[20,23,26,33,38,42,50,60,70],ponta:"manter",precast:true},
+ {n:"Raiz",a:S(.5,.85,.6),b:S(1.5,1.5,1.5),F1:2.2,F2:2.4,fck:[20,20],gc:[1.6,1.6],sig:null,Lmin:"integral",d:[10,12,15,16,20,25,31,41,45],ponta:"limitar"},
+ {n:"Strauss",a:S(.5,.85,.6),b:S(.5,.8,.65),F1:4.2,F2:3.9,fck:[20,null],gc:[2.5,null],sig:5,Lmin:2,d:[25,30,35,40,45,50],ponta:"limitar"}];
+// Rocha (1987) — ρ (%) para seções circulares; linhas µ = 1,00 … 0,20 (passo 0,05); colunas ν = 0 … 2,0 (passo 0,2)
+const ROCHA=[
+ [44.76,42.89,42.25,42.11,42.71,44.34,47.05,50.27,53.52,57.7,62.4],
+ [41.84,39.95,39.05,38.85,39.34,40.61,43.24,46.71,50.39,54.77,59.64],
+ [38.91,37,35.97,35.6,36.08,37.46,40.27,43.06,46.92,51.82,55.94],
+ [35.97,34.06,32.56,32.34,32.68,34.14,36.75,40.17,43.76,48.54,52.99],
+ [33.47,31.13,29.71,29.13,29.03,30.76,33.13,36.44,40.39,44.84,49.41],
+ [30.98,28.51,26.68,25.89,25.96,27.32,29.98,33.03,36.98,41.48,46.63],
+ [28.04,25.57,23.66,22.64,22.27,23.81,26.21,29.71,33.86,38.17,43.58],
+ [37.63,22.93,20.66,19.4,19.17,20.19,22.76,26.14,30.58,34.96,39.93],
+ [31.45,19.97,17.67,16.25,15.61,16.79,19.34,22.69,26.92,31.7,36.96],
+ [26.26,24.88,14.67,13.01,12.09,13.01,15.75,19.34,23.55,28.45,33.92],
+ [22.03,19.67,11.94,9.72,8.62,9.55,12.05,15.68,20.34,25.41,30.84],
+ [18.44,15.35,12.74,6.67,5.21,5.86,8.24,12.19,17.19,22.34,27.84],
+ [15.36,11.59,8.17,3.55,1.48,1.8,4.43,8.72,13.83,19.31,25.41],
+ [12.65,8.58,4.51,.6,0,0,.69,5.32,10.67,16.78,23.24],
+ [10.23,5.87,1.49,0,0,0,0,1.92,8.15,14.61,21.07],
+ [8.06,3.58,0,0,0,0,0,0,5.97,12.43,18.89],
+ [6.07,1.5,0,0,0,0,0,0,3.8,10.26,16.72]];
+// Comprimento de ancoragem básico (CA-50, boa aderência, sem gancho) em múltiplos de Ø
+const LB=[[20,44],[25,38],[30,33],[35,30],[40,28],[45,25],[50,24]];
+const KGM={5:.154,6.3:.245,8:.395,10:.617,12.5:.963,16:1.578,20:2.466,25:3.853,32:6.313};
+const FYD=42; // kN/cm² — menor entre 500/1,15 e 0,2%·210 GPa (= 420 MPa)
+
+/* ---------------- Estado ---------------- */
+const EXAMPLE={pileType:5,diam:40,depth:10,fs:2,embut:10,pontaMode:"limitar",method:"menor",Nk:400,Hk:20,Mk:30,gf:1.4,fck:30,caa:0,cob:5,phiL:"auto",phiT:"6.3",
+ spt:[[3,6],[5,6],[7,6],[8,9],[10,9],[12,14],[15,14],[18,12],[22,12],[25,4],[30,4],[35,4]]};
+const LESSON={pileType:2,diam:30,depth:4,fs:2,embut:10,pontaMode:"desprezar",method:"dq",Nk:48.67,Hk:0,Mk:0,gf:1.4,fck:25,caa:0,cob:4.5,phiL:"10",phiT:"6.3",
+ spt:[[7,5],[10,5],[15,0],[18,0]]};
+let state=load()||structuredClone(EXAMPLE);
+let isExample=!localStorage_get("estacas.v1");
+function localStorage_get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function load(){try{const s=localStorage.getItem("estacas.v1");return s?JSON.parse(s):null}catch(e){return null}}
+function save(){try{localStorage.setItem("estacas.v1",JSON.stringify(state))}catch(e){}}
+
+/* ---------------- Cálculo geotécnico ---------------- */
+function capacity(st){
+  const P=PILES[st.pileType], D=st.diam/100, Ap=Math.PI*D*D/4, U=Math.PI*D;
+  const rows=[]; let sumQs=0, rlAV=0;
+  st.spt.forEach(([N,si],i)=>{
+    const s=SOILS[si], z=i+1, has=N>0;
+    // Décourt-Quaresma
+    const qs=has?10*(N/3+1):0; sumQs+=qs;
+    const a=P.a[s.g], b=P.b[s.g];
+    let rpDQ=has?a*s.kdq*N*Ap:0; const rlDQ=b*sumQs*U;
+    // Aoki-Velloso
+    let rpAV=has?(s.kav*N/P.F1)*Ap:0; rlAV+=has?s.aav*s.kav*N/P.F2*U:0;
+    const apply=(rp,rl)=>st.pontaMode==="desprezar"?0:(st.pontaMode==="limitar"&&rp>=rl?0.95*rl:rp);
+    const rpDQe=apply(rpDQ,rlDQ), rpAVe=apply(rpAV,rlAV);
+    const dq={rp:rpDQe,rpRaw:rpDQ,rl:rlDQ,qu:rpDQe+rlDQ}; dq.qadm=dq.qu/st.fs; dq.rlAdm=rlDQ/st.fs;
+    const av={rp:rpAVe,rpRaw:rpAV,rl:rlAV,qu:rpAVe+rlAV}; av.qadm=av.qu/st.fs; av.rlAdm=rlAV/st.fs;
+    const media={qadm:(dq.qadm+av.qadm)/2, rlAdm:(dq.rlAdm+av.rlAdm)/2};
+    const menor={qadm:Math.min(dq.qadm,av.qadm), rlAdm:Math.min(dq.rlAdm,av.rlAdm)};
+    rows.push({z,N,soil:s,a,b,qs,sumQs,qp:s.kdq*N,dq,av,media,menor,has});
+  });
+  return {rows,Ap,U,D};
+}
+const pick=(row,m)=>m==="dq"?row.dq:m==="av"?row.av:m==="media"?row.media:row.menor;
+
+/* ---------------- Cálculo estrutural ---------------- */
+function rochaLookup(mu,nu){
+  if(mu>1+1e-9||nu>2+1e-9) return {fail:true};
+  const muR=Math.max(.2,Math.ceil(mu/.05-1e-9)*.05);
+  const nuR=Math.max(0,Math.ceil(nu/.2-1e-9)*.2);
+  const r=Math.round((1-muR)/.05), c=Math.round(nuR/.2);
+  return {rho:ROCHA[r][c],muR,nuR};
+}
+function lbCoef(fck){let c=LB[0][1];for(const [f,v] of LB){if(fck>=f)c=v}return c}
+const ceilTo=(x,s)=>Math.ceil(x/s-1e-9)*s;
+
+function structural(st,cap){
+  const P=PILES[st.pileType], out={warnings:[],errors:[],notes:[]};
+  if(P.noConcrete){out.skip="Estaca metálica: o dimensionamento estrutural segue o perfil de aço e não faz parte destas planilhas.";return out}
+  const ci=+st.caa, D=st.diam, r=D/2, Ac=Math.PI*D*D/4, Lm=st.depth;
+  const fckMin=P.fck[ci], gc=P.gc[ci];
+  if(fckMin==null){out.errors.push("Estaca Strauss não pode ser executada em CAA III ou IV (NBR 6122, Tabela 4).");return out}
+  if(st.fck<fckMin) out.warnings.push(`fck ${st.fck} MPa abaixo do mínimo da Tabela 4 para ${P.n.toLowerCase()} (${fckMin} MPa).`);
+  if(P.precast) out.notes.push("Estaca pré-moldada: a armadura real é definida pelo fabricante. O cálculo abaixo serve só como verificação.");
+  const row=cap.rows[Lm-1], m=pick(row,st.method);
+  const fcd=st.fck/gc, fcdK=fcd/10; // MPa e kN/cm²
+  const Nd=st.gf*st.Nk, Md=st.gf*st.Mk, Hd=st.gf*st.Hk;
+  const sigma=Nd/Ac*10; // MPa
+  const sigLim=P.sig;
+  const AsMin=0.004*Ac;
+  Object.assign(out,{P,ci,D,r,Ac,fckMin,gc,fcd,Nd,Md,Hd,sigma,sigLim,AsMin,qadm:m.qadm,rlAdm:m.rlAdm,Lm});
+  let AsCalc=0, mode, integral=P.Lmin==="integral";
+  if(st.Nk<0){
+    mode="tracao"; integral=true;
+    const AsT=Math.abs(Nd)/FYD; let AsM=0;
+    if(Md>0){const mu=Md/((r/100)**3*st.fck*1000); const lk=rochaLookup(mu,0); out.mu=mu;out.nu=0;out.lk=lk;
+      if(lk.fail) out.errors.push("Momento alto demais para a tabela de Rocha (µ > 1). Aumente o diâmetro ou o fck."); else AsM=lk.rho/100*r*r*st.fck/100;}
+    AsCalc=AsT+AsM; out.AsT=AsT; out.AsM=AsM;
+  } else if(Md>0){
+    mode="flexo";
+    const mu=Md/((r/100)**3*st.fck*1000), nu=Nd/((r/100)**2*st.fck*1000);
+    const lk=rochaLookup(mu,nu); Object.assign(out,{mu,nu,lk});
+    if(lk.fail) out.errors.push(`Taxa de aço acima do permitido pela tabela de Rocha (µ = ${f2(mu)}, ν = ${f2(nu)}; limites µ ≤ 1 e ν ≤ 2). Aumente o diâmetro ou o fck.`);
+    else AsCalc=lk.rho/100*r*r*st.fck/100;
+  } else {
+    mode="compressao";
+    out.AsP=(Nd*(1+6/D)-0.85*fcdK*Ac)/FYD;
+    if(sigLim!=null&&sigma>=sigLim) AsCalc=out.AsP; else AsCalc=Math.max(0,out.AsP);
+  }
+  out.mode=mode; out.needs=sigLim==null?true:sigma>=sigLim;
+  out.AsCalc=AsCalc; const As=Math.max(AsCalc,AsMin); out.As=As;
+  // barras longitudinais
+  const Rcage=(Ø,Øt)=>r-st.cob-Øt/10-Ø/20;
+  const phiT=+st.phiT;
+  const tryPhi=Ø=>{const Ab=Math.PI*(Ø/10)**2/4; const n=Math.max(6,Math.ceil(As/Ab-1e-9)); const R=Rcage(Ø,phiT); const clear=2*Math.PI*R/n-Ø/10; return {Ø,Ab,n,R,clear,fits:clear>=Math.max(2,Ø/10)}};
+  let bar;
+  if(st.phiL==="auto"){for(const Ø of [10,12.5,16,20,25,32]){bar=tryPhi(Ø);if(bar.fits)break}}
+  else bar=tryPhi(+st.phiL);
+  if(!bar.fits) out.warnings.push(`As barras não cabem com folga: espaço livre entre barras de ${f1(bar.clear)} cm (mínimo ${f1(Math.max(2,bar.Ø/10))} cm). Use bitola maior ou aumente o diâmetro.`);
+  out.bar=bar;
+  // comprimento da armadura
+  const Lcm=Lm*100, maxArm=Lcm+st.embut;
+  let Las=0, Pleq=null;
+  if(!integral){
+    const sigLimK=sigLim/10;
+    Pleq=Nd-sigLimK*Ac;
+    if(Pleq>0){Las=m.rlAdm>0?Pleq*Lm/m.rlAdm:Infinity}
+    out.Pleq=Pleq; out.Las=Las;
+    const Lmin=P.Lmin*100;
+    let Larm=ceilTo(Math.max(Las*100,Lmin),5);
+    if(!isFinite(Larm)||Larm>=maxArm){Larm=maxArm;integral=true;out.notes.push("O comprimento calculado alcança a estaca inteira: armadura integral.")}
+    out.Larm=Larm;
+  } else out.Larm=maxArm;
+  out.integral=integral;
+  out.lbC=lbCoef(st.fck); out.lb=Math.ceil(out.lbC*bar.Ø/10);
+  out.Lbar=out.Larm+out.lb;
+  // estribos
+  const fctm=0.3*Math.pow(st.fck,2/3), rhoSw=0.2*fctm/500, AswMin=rhoSw*100*D;
+  const Ast=Math.PI*(phiT/10)**2/4;
+  const nPerM=AswMin/Ast, nCalc=Math.ceil(nPerM*out.Lbar/100-1e-9);
+  const sCalc=Math.floor(out.Lbar/nCalc);
+  const sMax=Math.floor(Math.min(0.6*(D-st.cob),30));
+  let s=Math.min(sCalc,sMax);
+  Object.assign(out,{fctm,rhoSw,AswMin,Ast,nPerM,nCalc,sCalc,sMax,phiT});
+  // cisalhamento (Hetenyi: cortante máximo na cabeça = H)
+  if(Hd>0){
+    const d=D-st.cob, av2=1-st.fck/250;
+    const VRd2=0.27*av2*fcdK*D*d;
+    const fctd=0.7*fctm/gc/10; // kN/cm²
+    const Vc=1.2*fctd*Math.PI*d*d/4;
+    let Vsw=Ast/s*0.9*d*FYD, VRd3=Vc+Vsw;
+    const sh={d,av2,VRd2,fctd,Vc,Vsw,VRd3,Vsd:Hd};
+    if(Hd>VRd2) out.errors.push(`Cisalhamento: Vsd = ${f1(Hd)} kN maior que VRd2 = ${f1(VRd2)} kN (biela comprimida). Aumente o diâmetro ou o fck.`);
+    else if(Hd>VRd3){
+      const sReq=Math.floor(Ast*0.9*d*FYD/(Hd-Vc));
+      sh.sReq=sReq; s=Math.min(s,sReq);
+      Vsw=Ast/s*0.9*d*FYD; VRd3=Vc+Vsw; sh.Vsw2=Vsw; sh.VRd3b=VRd3;
+      if(s<5) out.warnings.push(`Espaçamento de estribos muito pequeno (${s} cm). Use estribo de bitola maior.`);
+    }
+    out.shear=sh;
+  }
+  out.s=s; out.nSt=Math.floor(out.Lbar/s)+1;
+  out.stDiam=D-2*st.cob; out.stLen=Math.ceil(Math.PI*out.stDiam+15);
+  // quantitativos
+  const kgL=bar.n*out.Lbar/100*KGM[bar.Ø], kgT=out.nSt*out.stLen/100*KGM[phiT];
+  out.kgL=kgL; out.kgT=kgT; out.vol=Ac/1e4*Lm*1.1;
+  return out;
+}
+
+/* ---------------- Formatação ---------------- */
+const nf=(d)=>new Intl.NumberFormat("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const F0=nf(0),F1=nf(1),F2=nf(2),F3=nf(3);
+const f0=x=>F0.format(x),f1=x=>F1.format(x),f2=x=>F2.format(x),f3=x=>F3.format(x);
+const fphi=Ø=>String(Ø).replace(".",",");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const soilColor=g=>["var(--areia)","var(--argila)","var(--silte)"][g];
+const methodName={dq:"Décourt-Quaresma",av:"Aoki-Velloso",media:"Média dos métodos",menor:"Mescla desfavorável"};
+
+/* ---------------- UI: entradas ---------------- */
+const $=id=>document.getElementById(id);
+const fields=["pileType","diam","depth","fs","embut","pontaMode","method","Nk","Hk","Mk","gf","fck","caa","cob","phiL","phiT"];
+$("pileType").innerHTML=PILES.map((p,i)=>`<option value="${i}">${esc(p.n)}</option>`).join("");
+function syncInputs(){
+  fields.forEach(k=>{$(k).value=state[k]});
+  $("diamList").innerHTML=PILES[state.pileType].d.map(v=>`<option value="${v}">`).join("");
+  $("exampleNote").hidden=!isExample;
+  renderSpt();
+}
+function renderSpt(){
+  const body=$("sptBody");
+  body.innerHTML=state.spt.map(([N,si],i)=>`<div class="spt-row${i+1===state.depth?" tip":""}" data-i="${i}">
+    <span class="z">${i}–${i+1} m</span>
+    <input type="number" min="0" max="80" step="1" value="${N}" data-k="N" aria-label="NSPT de ${i} a ${i+1} m" id="spt-n-${i}">
+    <select data-k="s" aria-label="Solo de ${i} a ${i+1} m" id="spt-s-${i}">${SOILS.map((s,j)=>`<option value="${j}"${j===si?" selected":""}>${esc(s.n)}</option>`).join("")}</select>
+    <span class="sw" style="background:${soilColor(SOILS[si].g)}"></span></div>`).join("");
+  $("depth").max=state.spt.length;
+}
+fields.forEach(k=>$(k).addEventListener("input",()=>{
+  let v=$(k).value;
+  if(["pileType","diam","depth","fs","embut","Nk","Hk","Mk","gf","fck","cob"].includes(k)) v=v===""?0:+v;
+  if(k==="caa") v=+v;
+  state[k]=v;
+  if(k==="pileType"){const P=PILES[v];state.pontaMode=P.ponta;$("pontaMode").value=P.ponta;
+    if(P.fck&&P.fck[state.caa]&&state.fck<P.fck[state.caa]){state.fck=P.fck[state.caa];$("fck").value=state.fck}
+    $("diamList").innerHTML=P.d.map(x=>`<option value="${x}">`).join("");}
+  if(k==="depth") renderSpt();
+  touched();
+}));
+$("sptBody").addEventListener("input",e=>{
+  const row=e.target.closest(".spt-row"); if(!row) return; const i=+row.dataset.i;
+  if(e.target.dataset.k==="N") state.spt[i][0]=Math.max(0,+e.target.value||0);
+  else {state.spt[i][1]=+e.target.value; row.querySelector(".sw").style.background=soilColor(SOILS[state.spt[i][1]].g)}
+  touched();
+});
+$("addRow").onclick=()=>{const last=state.spt[state.spt.length-1]||[10,0];state.spt.push([last[0],last[1]]);renderSpt();touched()};
+$("delRow").onclick=()=>{if(state.spt.length>1){state.spt.pop();if(state.depth>state.spt.length){state.depth=state.spt.length;$("depth").value=state.depth}renderSpt();touched()}};
+$("pasteApply").onclick=()=>{
+  const lines=$("pasteBox").value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const norm=t=>t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+  const out=[];
+  for(const l of lines){const parts=l.split(/\t|;/).map(x=>x.trim());const N=parseFloat((parts[0]||"").replace(",","."));if(isNaN(N))continue;
+    let si=out.length?out[out.length-1][1]:0; if(parts[1]){const j=SOILS.findIndex(s=>norm(s.n)===norm(parts[1]));if(j>=0)si=j}
+    out.push([Math.max(0,Math.round(N)),si])}
+  if(out.length){state.spt=out;if(state.depth>out.length)state.depth=out.length;syncInputs();touched()}
+};
+$("loadExample").onclick=()=>{state=structuredClone(EXAMPLE);isExample=true;try{localStorage.removeItem("estacas.v1")}catch(e){}syncInputs();recompute(true)};
+$("loadLesson").onclick=()=>{state=structuredClone(LESSON);isExample=true;try{localStorage.removeItem("estacas.v1")}catch(e){}syncInputs();recompute(true)};
+let tmr;
+function touched(){isExample=false;$("exampleNote").hidden=true;save();clearTimeout(tmr);tmr=setTimeout(()=>recompute(false),120)}
+
+/* "Repetir solo acima": aplica o solo da linha testada para baixo até a próxima mudança */
+$("fillSoil").onclick=()=>{
+  const i0=Math.max(0,Math.min(state.depth,state.spt.length)-1), s0=state.spt[i0][1];
+  for(let i=i0+1;i<state.spt.length;i++) state.spt[i][1]=s0;
+  renderSpt();touched();
+};
+$("fillSoil").title="Copia o solo da profundidade testada para todas as linhas abaixo dela";
+
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  document.querySelectorAll(".tabpanel").forEach(p=>p.hidden=p.id!=="p-"+b.dataset.tab);
+  if(b.dataset.tab==="resumo") viewer.resize();
+});
+
+/* ---------------- Render ---------------- */
+let last=null;
+function recompute(refit){
+  const st=state;
+  const v=validate(st);
+  if(v){$("alerts").innerHTML=`<div class="callout bad">${esc(v)}</div>`;$("statusPills").innerHTML="";return}
+  const cap=capacity(st);
+  const str=structural(st,cap);
+  last={st,cap,str};
+  renderSummary(st,cap,str);
+  renderCapacity(st,cap);
+  renderMemo(st,cap,str);
+  renderDetail(st,str);
+  viewer.build(st,str,refit);
+}
+function validate(st){
+  if(!st.spt.length) return "Preencha a sondagem.";
+  if(!(st.diam>0)) return "Informe o diâmetro da estaca.";
+  if(!(st.depth>=1)) return "Informe a profundidade testada (m).";
+  if(st.depth>st.spt.length) return `A sondagem vai até ${st.spt.length} m. Adicione metros ou reduza a profundidade testada.`;
+  if(!(st.fs>0)) return "Informe o fator de segurança.";
+  return null;
+}
+function minDepthOK(cap,st){for(const r of cap.rows){if(pick(r,st.method).qadm>=st.Nk) return r.z}return null}
+
+function renderSummary(st,cap,str){
+  const row=cap.rows[st.depth-1], m=pick(row,st.method), P=PILES[st.pileType];
+  const geoOK=st.Nk<=m.qadm, zmin=st.Nk>0?minDepthOK(cap,st):null;
+  const pills=[];
+  pills.push(st.Nk<0?["warn","Tração: verifique o atrito lateral à tração"]:geoOK?["ok",`Capacidade atende: ${f1(m.qadm)} ≥ ${f1(st.Nk)} kN`]:["bad",`Capacidade insuficiente: ${f1(m.qadm)} < ${f1(st.Nk)} kN`]);
+  if(!str.skip&&!str.errors.length){
+    if(str.mode==="compressao") pills.push(str.needs&&str.AsCalc>str.AsMin?["warn",`Tensão ${f2(str.sigma)} MPa ≥ ${str.sigLim} MPa: armadura calculada`]:str.sigLim==null?["ok","Armadura integral (Tabela 4)"]:["ok",`Tensão ${f2(str.sigma)} MPa < ${str.sigLim} MPa: armadura mínima`]);
+    if(str.mode==="flexo") pills.push(["warn","Flexo-compressão (Rocha, 1987)"]);
+    if(str.mode==="tracao") pills.push(["warn","Tração: armadura integral"]);
+    if(str.shear) pills.push(str.shear.Vsd<=str.shear.VRd2?["ok","Cisalhamento verificado"]:["bad","Cisalhamento não atende"]);
+    if(str.fckMin&&st.fck>=str.fckMin) pills.push(["ok",`fck ≥ ${str.fckMin} MPa`]);
+  }
+  if(str.errors&&str.errors.length) pills.push(["bad","Dimensionamento estrutural com erro"]);
+  $("statusPills").innerHTML=pills.map(([c,t])=>`<span class="pill ${c}">${esc(t)}</span>`).join("");
+  const al=[...(str.errors||[]).map(e=>["bad",e]),...(str.warnings||[]).map(w=>["",w]),...(str.notes||[]).map(n=>["",n])];
+  if(str.skip) al.push(["",str.skip]);
+  if(st.Nk>0&&!geoOK) al.unshift(["bad",zmin?`Na profundidade de ${st.depth} m a estaca não atende. A partir de ${zmin} m ela atende (${methodName[st.method]}).`:`Nenhuma profundidade da sondagem atende ${f1(st.Nk)} kN com este diâmetro. Aumente o diâmetro ou mude o tipo de estaca.`]);
+  if(st.spt.length<st.depth+Math.ceil(st.diam/100*6)) al.push(["",`A sondagem termina a menos de 6D (${f1(st.diam/100*6)} m, bulbo de tensões) abaixo da ponta. Confirme se o solo abaixo da ponta é igual ou melhor.`]);
+  $("alerts").innerHTML=al.length?`<div class="callout${al.some(a=>a[0]==="bad")?" bad":""}"><ul>${al.map(a=>`<li>${esc(a[1])}</li>`).join("")}</ul></div>`:"";
+  const kv=(t,v,u,w)=>`<div${w?' class="wide"':""}><dt>${t}</dt><dd>${v}${u?` <small>${u}</small>`:""}</dd></div>`;
+  $("kvGeo").innerHTML=
+    kv(`Carga admissível · ${methodName[st.method]}`,f1(m.qadm),"kN",true)+
+    kv("Décourt-Quaresma",f1(row.dq.qadm),"kN")+kv("Aoki-Velloso",f1(row.av.qadm),"kN")+
+    kv("Atrito lateral adm.",f1(m.rlAdm),"kN")+kv("Profundidade mínima que atende",zmin?zmin+" m":"—","")+
+    kv("Ponta (DQ / AV, ruptura)",`${f1(row.dq.rp)} / ${f1(row.av.rp)}`,"kN",true);
+  if(str.skip||str.errors.length&&!str.bar){$("kvStruct").innerHTML=kv("Estrutural",str.skip?"Fora do escopo":"Ver alertas","",true);return}
+  $("kvStruct").innerHTML=
+    kv("Armadura longitudinal (N1)",`${str.bar.n} Ø${fphi(str.bar.Ø)} mm`,`· ${str.Lbar} cm`,true)+
+    kv("Estribos (N2)",`${str.nSt} Ø${fphi(str.phiT)} c/${str.s}`,`cm · ${str.stLen} cm`,true)+
+    kv("As adotada",f2(str.bar.n*str.bar.Ab),`cm² (nec. ${f2(str.As)})`)+
+    kv("Profundidade armada",str.integral?"Integral":f2(str.Larm/100)+" m","")+
+    kv("Aço CA-50 (+10%)",f1((str.kgL+str.kgT)*1.1),"kg")+kv("Concreto (+10%)",f2(str.vol),"m³");
+}
+
+function renderCapacity(st,cap){
+  const rows=cap.rows;
+  const td=(x,cls)=>`<td${cls?` class="${cls}"`:""}>${x}</td>`;
+  let h=`<table><thead><tr class="grp"><th colspan="3"></th><th colspan="5">Décourt-Quaresma (kN)</th><th colspan="4">Aoki-Velloso (kN)</th><th colspan="2">Combinação (kN)</th></tr>
+  <tr><th>Prof. (m)</th><th>NSPT</th><th class="l">Solo</th><th>α / β</th><th>Rp</th><th>Rl</th><th>Qult</th><th>Qadm</th><th>Rp</th><th>Rl</th><th>Qult</th><th>Qadm</th><th>Média</th><th>Menor</th></tr></thead><tbody>`;
+  for(const r of rows){
+    const m=pick(r,st.method), ok=st.Nk>0?(m.qadm>=st.Nk?"okc":"badc"):"";
+    const cell=(v,key)=>td(f1(v),key===st.method?ok:"");
+    h+=`<tr${r.z===st.depth?' class="sel"':""}>${td(r.z)}${td(r.N)}<td class="l">${esc(r.soil.n)}</td>${td(f2(r.a)+" / "+f2(r.b))}${td(f1(r.dq.rp))}${td(f1(r.dq.rl))}${td(f1(r.dq.qu))}${cell(r.dq.qadm,"dq")}${td(f1(r.av.rp))}${td(f1(r.av.rl))}${td(f1(r.av.qu))}${cell(r.av.qadm,"av")}${cell(r.media.qadm,"media")}${cell(r.menor.qadm,"menor")}</tr>`;
+  }
+  $("capTable").innerHTML=h+"</tbody></table>";
+  const pm={manter:"resistência de ponta mantida",limitar:"ponta limitada a 95% do atrito lateral quando Rp ≥ Rl (NBR 6122, item 8.2.1.2)",desprezar:"resistência de ponta desprezada"}[st.pontaMode];
+  $("capFoot").textContent=`Ap = ${f4(cap.Ap)} m² · perímetro = ${f3(cap.U)} m · FS = ${f1(st.fs)} · ${pm}. Décourt: qp = K·N, qs = 10·(N/3 + 1), Qult = α·qp·Ap + β·Σqs·U·1 m. Aoki-Velloso: Rp = K·N/F1·Ap, Rl = Σ α·K·N/F2·U·1 m. Linha destacada = profundidade testada; cor verde/vermelha = atende ou não à carga N no método escolhido.`;
+  $("profileChart").innerHTML=profileSvg(st,cap);
+}
+const f4=x=>nf(4).format(x);
+
+function profileSvg(st,cap){
+  const rows=cap.rows, n=rows.length, W=760, rowH=Math.max(22,Math.min(34,420/n)), top=36, H=top+n*rowH+44;
+  const x0=150, sptW=170, cx0=x0+sptW+60, cW=W-cx0-30;
+  const maxN=Math.max(10,...rows.map(r=>r.N)), sN=sptW/ (Math.ceil(maxN/10)*10);
+  const vals=rows.flatMap(r=>[r.dq.qadm,r.av.qadm]).concat(st.Nk>0?[st.Nk]:[]);
+  const maxQ=niceMax(Math.max(...vals,1)), sQ=cW/maxQ;
+  const y=z=>top+z*rowH;
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="Perfil de sondagem e carga admissível por profundidade" font-family="IBM Plex Sans,system-ui,sans-serif" font-size="11">`;
+  g+=`<text x="${x0}" y="18" fill="var(--ink)" font-weight="600" font-size="12">NSPT</text><text x="${cx0}" y="18" fill="var(--ink)" font-weight="600" font-size="12">Carga admissível (kN) × profundidade</text>`;
+  // soil column
+  rows.forEach((r,i)=>{
+    g+=`<rect x="20" y="${y(i)}" width="${x0-30}" height="${rowH}" fill="${soilColor(r.soil.g)}" opacity=".55"/>`;
+    g+=`<text x="26" y="${y(i)+rowH/2+4}" fill="var(--ink)" font-size="10.5">${esc(r.soil.n)}</text>`;
+    g+=`<rect x="${x0}" y="${y(i)+3}" width="${Math.max(1,r.N*sN)}" height="${rowH-6}" fill="${soilColor(r.soil.g)}"/>`;
+    g+=`<text x="${x0+r.N*sN+4}" y="${y(i)+rowH/2+4}" fill="var(--ink)" font-family="IBM Plex Mono,monospace">${r.N}</text>`;
+  });
+  // depth ticks
+  for(let z=0;z<=n;z++){g+=`<line x1="14" x2="${W-20}" y1="${y(z)}" y2="${y(z)}" stroke="var(--line)" stroke-width="${z%5===0?1:.5}"/>`;
+    g+=`<text x="10" y="${y(z)+4}" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono,monospace" font-size="10">${z}</text>`}
+  // Q grid
+  for(let q=0;q<=maxQ+1e-9;q+=maxQ/5){const X=cx0+q*sQ;g+=`<line x1="${X}" x2="${X}" y1="${top}" y2="${y(n)}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${X}" y="${y(n)+16}" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono,monospace" font-size="10">${f0(q)}</text>`}
+  const line=(key,color,dash)=>{const pts=rows.map((r,i)=>`${cx0+pick(r,key).qadm*sQ},${y(i+1)}`).join(" ");
+    return `<polyline points="${cx0},${y(0)} ${pts}" fill="none" stroke="${color}" stroke-width="2" ${dash?`stroke-dasharray="${dash}"`:""}/>`+rows.map((r,i)=>`<circle cx="${cx0+pick(r,key).qadm*sQ}" cy="${y(i+1)}" r="2.6" fill="${color}"/>`).join("")};
+  g+=line("dq","var(--accent)")+line("av","var(--steel)","5 3");
+  if(st.Nk>0){const X=cx0+st.Nk*sQ;g+=`<line x1="${X}" x2="${X}" y1="${top}" y2="${y(n)}" stroke="var(--dim)" stroke-width="1.5"/><text x="${X+4}" y="${top+12}" fill="var(--dim)" font-size="10.5">N = ${f0(st.Nk)} kN</text>`}
+  // selected depth
+  const ys=y(st.depth);g+=`<line x1="14" x2="${W-20}" y1="${ys}" y2="${ys}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="6 3"/><text x="${W-22}" y="${ys-4}" text-anchor="end" fill="var(--ink)" font-weight="600">ponta testada · ${st.depth} m</text>`;
+  // legend
+  const ly=H-12;g+=`<line x1="${cx0}" x2="${cx0+22}" y1="${ly-4}" y2="${ly-4}" stroke="var(--accent)" stroke-width="2"/><text x="${cx0+27}" y="${ly}" fill="var(--ink)">Décourt-Quaresma</text>
+  <line x1="${cx0+150}" x2="${cx0+172}" y1="${ly-4}" y2="${ly-4}" stroke="var(--steel)" stroke-width="2" stroke-dasharray="5 3"/><text x="${cx0+177}" y="${ly}" fill="var(--ink)">Aoki-Velloso</text>
+  <text x="10" y="${ly}" fill="var(--muted)">Prof. (m)</text>`;
+  return g+"</svg>";
+}
+function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));for(const k of [1,1.5,2,2.5,3,4,5,6,8,10]){if(k*p>=v)return k*p}return 10*p}
+
+function renderMemo(st,cap,str){
+  const row=cap.rows[st.depth-1], P=PILES[st.pileType];
+  let h="";
+  const sec=(t,body)=>`<section><h3>${t}</h3>${body}</section>`;
+  const eq=s=>`<div class="eq">${esc(s)}</div>`;
+  const p=s=>`<p>${s}</p>`;
+  h+=sec("1. Capacidade de carga na profundidade testada",
+    p(`${esc(P.n)}, Ø ${st.diam} cm, ponta a ${st.depth} m em ${esc(row.soil.n.toLowerCase())} (NSPT = ${row.N}).`)+
+    eq(`Décourt-Quaresma
+qp = K·N = ${row.soil.kdq}·${row.N} = ${f0(row.qp)} kN/m²
+Σqs = ${f2(row.sumQs)} kN/m²   α = ${f2(row.a)}   β = ${f2(row.b)}
+Rp = α·qp·Ap = ${f2(row.dq.rpRaw)} kN → adotado ${f2(row.dq.rp)} kN
+Rl = β·Σqs·U = ${f2(row.dq.rl)} kN
+Qult = ${f2(row.dq.qu)} kN   Qadm = Qult/FS = ${f2(row.dq.qadm)} kN
+
+Aoki-Velloso (F1 = ${P.F1}, F2 = ${P.F2})
+Rp = K·N/F1·Ap = ${f2(row.av.rpRaw)} kN → adotado ${f2(row.av.rp)} kN
+Rl = Σ α·K·N/F2·U = ${f2(row.av.rl)} kN
+Qult = ${f2(row.av.qu)} kN   Qadm = ${f2(row.av.qadm)} kN
+
+Adotado (${methodName[st.method]}): Qadm = ${f2(pick(row,st.method).qadm)} kN   Rl,adm = ${f2(pick(row,st.method).rlAdm)} kN`));
+  if(str.skip){$("memo").innerHTML=h+sec("2. Dimensionamento estrutural",p(esc(str.skip)));return}
+  if(str.errors.length&&!str.bar){$("memo").innerHTML=h+sec("2. Dimensionamento estrutural",p(esc(str.errors.join(" "))));return}
+  h+=sec("2. Parâmetros da NBR 6122:2019 — Tabela 4",
+    eq(`fck mínimo = ${str.fckMin} MPa   γc = ${str.gc}   tensão limite = ${str.sigLim==null?"— (armadura integral)":str.sigLim+" MPa"}
+comprimento mínimo da armadura = ${P.Lmin==="integral"?"integral":P.Lmin+" m"}   taxa mínima = 0,4%·Ac
+fcd = fck/γc = ${st.fck}/${str.gc} = ${f3(str.fcd)} MPa   fyd = menor(500/1,15; 0,2%·210 GPa) = 420 MPa`));
+  h+=sec("3. Esforços de cálculo e tensão na cabeça",
+    eq(`Nd = γf·N = ${st.gf}·${f2(st.Nk)} = ${f2(str.Nd)} kN   Md = ${f2(str.Md)} kN·m   Hd = ${f2(str.Hd)} kN
+Ac = π·${st.diam}²/4 = ${f2(str.Ac)} cm²
+σ = Nd/Ac = ${f3(str.sigma)} MPa ${str.sigLim==null?"":(str.sigma>=str.sigLim?"≥":"<")+" "+str.sigLim+" MPa"}`));
+  let b="";
+  if(str.mode==="compressao"){
+    b+=eq(`As,p = [Nd·(1 + 6/Ø) − 0,85·fcd·Ac] / fyd
+     = [${f2(str.Nd)}·(1 + 6/${st.diam}) − 0,85·${f3(str.fcd/10)}·${f2(str.Ac)}] / 42 = ${f2(str.AsP)} cm²`);
+    b+=p(str.AsP<=str.AsMin?"As,p é menor que a mínima: a tensão não exige mais que a armadura mínima.":"As,p supera a mínima e governa.");
+  } else if(str.mode==="flexo"){
+    b+=eq(`ν = Nd/(r²·fck) = ${f2(str.Nd)}/(${f4(str.r/100)}²·${st.fck*1000}) = ${f3(str.nu)}  → coluna ν = ${str.lk.fail?"—":f1(str.lk.nuR)}
+µ = Md/(r³·fck) = ${f2(str.Md)}/(${f4(str.r/100)}³·${st.fck*1000}) = ${f3(str.mu)}  → linha µ = ${str.lk.fail?"—":f2(str.lk.muR)}
+ρ (Rocha, 1987) = ${str.lk.fail?"fora da tabela":f2(str.lk.rho)}
+As = ρ/100·r²·fck(tf/cm²) = ${str.lk.fail?"—":f2(str.lk.rho)+"/100·"+f2(str.r)+"²·"+f2(st.fck/100)+" = "+f2(str.AsCalc)+" cm²"}`);
+  } else {
+    b+=eq(`Tração: As,t = |Nd|/fyd = ${f2(Math.abs(str.Nd))}/42 = ${f2(str.AsT)} cm²${str.Md>0?`
+Momento com ν = 0: µ = ${f3(str.mu)} → ρ = ${str.lk&&!str.lk.fail?f2(str.lk.rho):"—"} → As,m = ${f2(str.AsM)} cm²`:""}
+As = ${f2(str.AsCalc)} cm²`);
+    b+=p("Critério de tração e somatório tração + momento adicionados ao app (não constam nas planilhas de referência).");
+  }
+  b+=eq(`As,mín = 0,4%·Ac = ${f2(str.AsMin)} cm²   As,nec = ${f2(str.As)} cm²
+Ø ${fphi(str.bar.Ø)} mm (${f3(str.bar.Ab)} cm²): n = máx(6; As/Abarra) = ${str.bar.n} barras → As,ef = ${f2(str.bar.n*str.bar.Ab)} cm²
+Espaço livre entre barras = ${f1(str.bar.clear)} cm`);
+  h+=sec("4. Armadura longitudinal",b);
+  let c="";
+  if(str.integral&&P.Lmin==="integral") c+=p("Tabela 4 exige armadura integral para este tipo de estaca.");
+  else if(str.mode==="tracao") c+=p("Estaca tracionada: armadura em todo o comprimento.");
+  else {
+    c+=eq(`Pleq = Nd − σlim·Ac = ${f2(str.Nd)} − ${f2(str.sigLim/10)}·${f2(str.Ac)} = ${f2(str.Pleq)} kN
+L,as = Pleq·L/Rl,adm = ${str.Pleq>0?f2(str.Pleq)+"·"+st.depth+"/"+f2(str.rlAdm)+" = "+f2(str.Las)+" m":"0 (Pleq ≤ 0)"}
+L,arm = máx(L,as; L,mín = ${P.Lmin} m), arredondado a 5 cm = ${str.Larm} cm${str.integral?" (integral)":""}`);
+  }
+  c+=eq(`Ancoragem sem gancho (fck ${st.fck} MPa): lb = ${str.lbC}·Ø = ${str.lb} cm
+Comprimento da barra N1 = ${str.Larm} + ${str.lb} = ${str.Lbar} cm`);
+  h+=sec("5. Comprimento da armadura",c);
+  let d=eq(`fct,m = 0,3·fck^(2/3) = ${f3(str.fctm)} MPa   ρsw,mín = 0,2·fct,m/fywk = ${nf(6).format(str.rhoSw)}
+Asw,mín = ρsw·100·Ø = ${f2(str.AswMin)} cm²/m
+Ø ${fphi(str.phiT)} (${f3(str.Ast)} cm²): ${f2(str.nPerM)} barras/m → ${str.nCalc} barras em ${str.Lbar} cm → s,calc = ${str.sCalc} cm
+s,máx = 0,6·(Ø − c) ≤ 30 cm = ${str.sMax} cm   →   s = ${str.s} cm`);
+  if(str.shear){const s=str.shear;d+=eq(`Cortante (Hetenyi, máximo na cabeça): Vsd = Hd = ${f2(s.Vsd)} kN
+αv2 = 1 − fck/250 = ${f3(s.av2)}   d = Ø − c = ${f1(s.d)} cm
+VRd2 = 0,27·αv2·fcd·Ø·d = ${f2(s.VRd2)} kN ${s.Vsd<=s.VRd2?"≥ Vsd  OK":"< Vsd  NÃO ATENDE"}
+fctd = 0,7·fct,m/γc = ${f3(s.fctd*10)} MPa   Vc = 1,2·fctd·π·d²/4 = ${f2(s.Vc)} kN
+Vsw = (Asw/s)·0,9·d·fywd = ${f2(s.sReq?s.Vsw2:s.Vsw)} kN   VRd3 = ${f2(s.sReq?s.VRd3b:s.VRd3)} kN ${(s.sReq?s.VRd3b:s.VRd3)>=s.Vsd?"≥ Vsd  OK":"< Vsd"}${s.sReq?`
+Espaçamento reduzido para atender o cortante: s ≤ ${s.sReq} cm`:""}`)}
+  d+=eq(`Estribos N2: ${str.nSt} Ø${fphi(str.phiT)} c/${str.s} cm, diâmetro ${f1(str.stDiam)} cm, comprimento π·${f1(str.stDiam)} + 15 = ${str.stLen} cm`);
+  h+=sec("6. Armadura transversal",d);
+  $("memo").innerHTML=h;
+}
+
+function renderDetail(st,str){
+  if(str.skip||!str.bar){$("elevSvg").innerHTML=`<p class="hint" style="padding:16px">${esc(str.skip||"Corrija os erros do dimensionamento para gerar o detalhamento.")}</p>`;$("secSvg").innerHTML="";$("barTable").innerHTML="";$("matTable").innerHTML="";return}
+  $("elevSvg").innerHTML=elevationSvg(st,str);
+  $("secSvg").innerHTML=sectionSvg(st,str);
+  const kgL=str.kgL,kgT=str.kgT;
+  $("barTable").innerHTML=`<table><thead><tr><th class="l">Pos.</th><th>Qtd.</th><th>Ø (mm)</th><th>Espaç. (cm)</th><th>Compr. unit. (cm)</th><th>Compr. total (m)</th><th>Peso (kg)</th></tr></thead><tbody>
+  <tr><td class="l">N1 · longitudinal</td><td>${str.bar.n}</td><td>${fphi(str.bar.Ø)}</td><td>—</td><td>${str.Lbar}</td><td>${f2(str.bar.n*str.Lbar/100)}</td><td>${f1(kgL)}</td></tr>
+  <tr><td class="l">N2 · estribo circular</td><td>${str.nSt}</td><td>${fphi(str.phiT)}</td><td>${str.s}</td><td>${str.stLen}</td><td>${f2(str.nSt*str.stLen/100)}</td><td>${f1(kgT)}</td></tr></tbody></table>`;
+  $("matTable").innerHTML=`<table><thead><tr><th class="l">Resumo de materiais (+10% de perdas)</th><th>Unid.</th><th>Qtd.</th></tr></thead><tbody>
+  <tr><td class="l">Aço CA-50 Ø${fphi(str.bar.Ø)} mm</td><td>kg</td><td>${f1(kgL*1.1)}</td></tr>
+  <tr><td class="l">Aço CA-50 Ø${fphi(str.phiT)} mm</td><td>kg</td><td>${f1(kgT*1.1)}</td></tr>
+  <tr><td class="l">Concreto fck ${st.fck} MPa</td><td>m³</td><td>${f2(str.vol)}</td></tr></tbody></table>`;
+}
+function dimV(x,y1,y2,label,side){ // cota vertical
+  const t=side==="l"?-8:8;
+  return `<g stroke="var(--dim)" fill="none" stroke-width="1"><line x1="${x}" x2="${x}" y1="${y1}" y2="${y2}"/><line x1="${x-5}" x2="${x+5}" y1="${y1}" y2="${y1}"/><line x1="${x-5}" x2="${x+5}" y1="${y2}" y2="${y2}"/>
+  <path d="M${x-3},${y1+7} L${x},${y1} L${x+3},${y1+7}"/><path d="M${x-3},${y2-7} L${x},${y2} L${x+3},${y2-7}"/></g>
+  <text x="${x+t}" y="${(y1+y2)/2}" fill="var(--dim)" font-weight="700" font-size="12" text-anchor="middle" transform="rotate(-90 ${x+t} ${(y1+y2)/2})" dy="${side==="l"?-2:10}">${label}</text>`;
+}
+function elevationSvg(st,str){
+  const W=520,H=620, Lp=st.depth*100+st.embut, top=40, avail=H-110;
+  // escala por trechos: ancoragem, trecho armado e restante da estaca (desenho esquemático)
+  const segs=[str.lb,str.Larm,Math.max(0,Lp-str.Larm)], mins=[46,220,segs[2]>0?70:0];
+  let px_=segs.map(s=>s/(segs[0]+segs[1]+segs[2])*avail);
+  for(let k=0;k<3;k++){if(px_[k]<mins[k]){const need=mins[k]-px_[k];px_[k]=mins[k];const others=[0,1,2].filter(j=>j!==k&&px_[j]>mins[j]);const tot=others.reduce((a,j)=>a+px_[j],0);others.forEach(j=>px_[j]-=need*px_[j]/tot)}}
+  const pw=Math.max(46,Math.min(90,st.diam*1.4)), px=170;
+  const yTopBar=top, yTopPile=top+px_[0], yArm=yTopPile+px_[1], yBot=yArm+px_[2];
+  const y0=yTopPile+Math.max(14,st.embut/Math.max(1,str.Larm)*px_[1]);
+  const cageIn=Math.max(5,pw*st.cob/st.diam);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="Elevação da estaca com armadura" font-family="IBM Plex Sans,system-ui,sans-serif" font-size="11">`;
+  g+=`<text x="12" y="18" fill="var(--muted)" font-size="11">ELEVAÇÃO · cotas em cm · desenho esquemático, fora de escala</text>`;
+  g+=`<rect x="${px}" y="${yTopPile}" width="${pw}" height="${yBot-yTopPile}" fill="var(--concrete)" stroke="var(--muted)"/>`;
+  if(segs[2]>0&&px_[2]<segs[2]/(segs[1]||1)*px_[1]*0.8){const yb=(yArm+yBot)/2;g+=`<path d="M${px-6},${yb-4} l${pw/2+6},-6 l0,12 l${pw/2+6},-6" fill="var(--panel)" stroke="var(--muted)"/>`}
+  // cota de arrasamento
+  g+=`<line x1="40" x2="${px-10}" y1="${y0}" y2="${y0}" stroke="var(--ink)"/><text x="40" y="${y0+13}" fill="var(--dim)" font-size="11">+0,0 (fundo do bloco)</text>`;
+  g+=`<line x1="40" x2="${px-10}" y1="${yTopPile}" y2="${yTopPile}" stroke="var(--ink)"/><text x="40" y="${yTopPile-5}" fill="var(--dim)" font-size="11">C.A +${st.embut}</text>`;
+  // gaiola
+  const xl=px+cageIn, xr=px+pw-cageIn, xm=(xl+xr)/2;
+  [xl,xm,xr].forEach(x=>g+=`<line x1="${x}" x2="${x}" y1="${yTopBar}" y2="${yArm}" stroke="var(--steel)" stroke-width="2.4"/>`);
+  const step=str.s*px_[1]/Math.max(1,str.Larm); let cnt=0;
+  for(let yy=yTopBar+3;yy<=yArm-1&&cnt<400;yy+=Math.max(step,3),cnt++) g+=`<line x1="${xl-2}" x2="${xr+2}" y1="${yy}" y2="${yy}" stroke="var(--steel)" stroke-width="1.4"/>`;
+  // cotas
+  g+=dimV(px-30,yTopBar,yTopPile,str.lb,"l");
+  g+=dimV(px-30,yTopPile,yArm,str.Larm,"l");
+  g+=dimV(px+pw+22,yTopPile,yBot,Lp,"r");
+  g+=`<g stroke="var(--dim)" stroke-width="1"><line x1="${px}" x2="${px+pw}" y1="${yBot+16}" y2="${yBot+16}"/><line x1="${px}" x2="${px}" y1="${yBot+10}" y2="${yBot+22}"/><line x1="${px+pw}" x2="${px+pw}" y1="${yBot+10}" y2="${yBot+22}"/></g><text x="${px+pw/2}" y="${yBot+32}" text-anchor="middle" fill="var(--dim)" font-weight="700" font-size="12">Ø ${st.diam}</text>`;
+  // barra N1 rebatida
+  const bx=px+pw+80;
+  g+=`<line x1="${bx}" x2="${bx}" y1="${yTopBar}" y2="${yArm}" stroke="var(--steel)" stroke-width="3"/>`;
+  g+=`<text x="${bx+16}" y="${(yTopBar+yArm)/2}" fill="var(--ink)" font-weight="700" font-size="12.5" text-anchor="middle" transform="rotate(-90 ${bx+16} ${(yTopBar+yArm)/2})">${str.bar.n} N1 Ø${fphi(str.bar.Ø)} mm · ${str.Lbar} cm</text>`;
+  g+=`<text x="${bx+40}" y="${yArm}" fill="var(--muted)" font-size="11" text-anchor="middle" transform="rotate(-90 ${bx+40} ${yArm})" dx="40">${str.integral?"armadura integral":"fim da armadura"}</text>`;
+  g+=`<text x="${px+pw/2}" y="${H-14}" text-anchor="middle" fill="var(--ink)" font-weight="600">${str.nSt} N2 Ø${fphi(str.phiT)} c/${str.s} · c = ${str.stLen}</text>`;
+  return g+"</svg>";
+}
+function sectionSvg(st,str){
+  const W=520,H=260, R=90, cx=140, cy=130, k=R/(st.diam/2);
+  const rc=str.bar.R*k, rs=(str.stDiam/2)*k, br=Math.max(3.5,str.bar.Ø/20*k);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="Seção transversal da estaca" font-family="IBM Plex Sans,system-ui,sans-serif" font-size="11">`;
+  g+=`<text x="12" y="18" fill="var(--muted)">SEÇÃO TRANSVERSAL</text>`;
+  g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="var(--concrete)" stroke="var(--muted)"/>`;
+  g+=`<circle cx="${cx}" cy="${cy}" r="${rs}" fill="none" stroke="var(--steel)" stroke-width="${Math.max(1.5,str.phiT/20*k)}"/>`;
+  for(let i=0;i<str.bar.n;i++){const a=i/str.bar.n*2*Math.PI-Math.PI/2;g+=`<circle cx="${cx+rc*Math.cos(a)}" cy="${cy+rc*Math.sin(a)}" r="${br}" fill="var(--steel)"/>`}
+  g+=`<g stroke="var(--dim)"><line x1="${cx-R}" x2="${cx+R}" y1="${cy+R+16}" y2="${cy+R+16}"/><line x1="${cx-R}" x2="${cx-R}" y1="${cy+R+10}" y2="${cy+R+22}"/><line x1="${cx+R}" x2="${cx+R}" y1="${cy+R+10}" y2="${cy+R+22}"/></g>`;
+  const tx=300;
+  g+=`<text x="${tx}" y="70" fill="var(--ink)" font-weight="700" font-size="13">${str.bar.n} N1 Ø${fphi(str.bar.Ø)} mm</text>`;
+  g+=`<text x="${tx}" y="90" fill="var(--muted)">As,ef = ${f2(str.bar.n*str.bar.Ab)} cm² (${f2(str.bar.n*str.bar.Ab/str.Ac*100)}% de Ac)</text>`;
+  g+=`<text x="${tx}" y="122" fill="var(--ink)" font-weight="700" font-size="13">N2 Ø${fphi(str.phiT)} c/${str.s} cm</text>`;
+  g+=`<text x="${tx}" y="142" fill="var(--muted)">estribo circular Ø ${f1(str.stDiam)} cm</text>`;
+  g+=`<text x="${tx}" y="174" fill="var(--muted)">cobrimento ${f1(st.cob)} cm · Ø estaca ${st.diam} cm</text>`;
+  g+=`<text x="${cx}" y="${cy+R+12}" dy="20" text-anchor="middle" fill="var(--dim)" font-weight="700" font-size="12">${st.diam}</text>`;
+  return g+"</svg>";
+}
+
+/* ---------------- Viewer 3D ---------------- */
+const viewer=(()=>{
+  const host=$("viewer"); let renderer,scene,camera,controls,groups={},ok=false,lastFit=null;
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim()||"#888";
+  function init(){
+    if(!window.THREE){host.insertAdjacentHTML("beforeend",`<div class="err">O modelo 3D não carregou (biblioteca bloqueada ou sem internet). O restante do app funciona normalmente.</div>`);return false}
+    try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true})}catch(e){host.insertAdjacentHTML("beforeend",`<div class="err">Este navegador não suporta WebGL, então o modelo 3D não pode ser exibido.</div>`);return false}
+    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+    host.appendChild(renderer.domElement);
+    scene=new THREE.Scene();
+    camera=new THREE.PerspectiveCamera(40,1,0.01,500);
+    controls=new THREE.OrbitControls(camera,renderer.domElement); controls.enableDamping=true;
+    scene.add(new THREE.HemisphereLight(0xffffff,0x667066,0.85));
+    const dl=new THREE.DirectionalLight(0xffffff,0.75); dl.position.set(4,8,6); scene.add(dl);
+    new ResizeObserver(resize).observe(host);
+    const loop=()=>{requestAnimationFrame(loop);if(!host.offsetParent)return;controls.update();renderer.render(scene,camera)};loop();
+    return true;
+  }
+  function resize(){if(!ok)return;const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+  function clear(){Object.values(groups).forEach(g=>{scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})});groups={}}
+  function build(st,str,refit){
+    if(!ok){ok=init();if(!ok)return}
+    clear();
+    const D=st.diam/100, L=st.depth, e=st.embut/100;
+    const steel=new THREE.MeshStandardMaterial({color:new THREE.Color(css("--steel")),metalness:.55,roughness:.45});
+    // concreto
+    const gC=new THREE.Group();
+    const conc=new THREE.Mesh(new THREE.CylinderGeometry(D/2,D/2,L+e,48,1,false),new THREE.MeshStandardMaterial({color:new THREE.Color(css("--concrete")),transparent:true,opacity:.28,depthWrite:false,roughness:.9}));
+    conc.position.y=(e-L)/2; gC.add(conc);
+    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(D/2,D/2,L+e,32,1)),new THREE.LineBasicMaterial({color:new THREE.Color(css("--muted")),transparent:true,opacity:.5}));
+    edges.position.y=conc.position.y; gC.add(edges);
+    groups.concrete=gC; scene.add(gC);
+    // solo
+    const gS=new THREE.Group(), Rs=Math.max(D*2.2,0.5);
+    st.spt.slice(0,Math.max(L+2,1)).forEach(([N,si],i)=>{
+      const col=new THREE.Color(css(["--areia","--argila","--silte"][SOILS[si].g]));
+      const ring=new THREE.Mesh(new THREE.CylinderGeometry(Rs,Rs,0.98,48,1,true,0,Math.PI*1.5),new THREE.MeshStandardMaterial({color:col,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));
+      ring.position.y=-(i+0.5); gS.add(ring);
+      const disc=new THREE.Mesh(new THREE.RingGeometry(D/2+0.01,Rs,48,1,0,Math.PI*1.5),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false}));
+      disc.rotation.x=-Math.PI/2; disc.position.y=-i; gS.add(disc);
+    });
+    groups.soil=gS; scene.add(gS); gS.visible=$("tgSoil").getAttribute("aria-pressed")==="true";
+    gC.visible=$("tgConcrete").getAttribute("aria-pressed")==="true";
+    // armadura
+    const gA=new THREE.Group();
+    if(str&&str.bar){
+      const yTop=e+str.lb/100, yBot=e-str.Larm/100, len=yTop-yBot, R=str.bar.R/100, rb=str.bar.Ø/2000;
+      const bg=new THREE.CylinderGeometry(rb,rb,len,10);
+      for(let i=0;i<str.bar.n;i++){const a=i/str.bar.n*Math.PI*2;const m=new THREE.Mesh(bg,steel);m.position.set(R*Math.cos(a),(yTop+yBot)/2,R*Math.sin(a));gA.add(m)}
+      const rt=str.phiT/2000, rS=str.stDiam/200-rt, tg=new THREE.TorusGeometry(rS,rt,6,40);
+      const sp=str.s/100;
+      for(let k=0;k<str.nSt&&k<1500;k++){const t=new THREE.Mesh(tg,steel);t.rotation.x=Math.PI/2;t.position.y=yTop-0.03-k*sp;if(t.position.y<yBot)break;gA.add(t)}
+    }
+    groups.cage=gA; scene.add(gA);
+    // bloco (contorno) e terreno
+    const gB=new THREE.Group(), bw=Math.max(D*2.5,0.8), bh=Math.max(e+(str&&str.lb?str.lb/100:0)+0.1,0.4);
+    const box=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(bw,bh,bw)),new THREE.LineBasicMaterial({color:new THREE.Color(css("--accent")),transparent:true,opacity:.7}));
+    box.position.y=bh/2; gB.add(box);
+    const grid=new THREE.GridHelper(Rs*2.4,12,new THREE.Color(css("--muted")),new THREE.Color(css("--line"))); grid.position.y=0; gB.add(grid);
+    groups.block=gB; scene.add(gB);
+    lastFit={L,e,D,str};
+    if(refit||!camera.userData.fitted){fit("cage");camera.userData.fitted=true}
+    resize();
+  }
+  function fit(mode){
+    if(!lastFit)return; const {L,e,D,str}=lastFit;
+    let yTop,yBot;
+    if(mode==="all"||!str||!str.bar){yTop=e+0.5;yBot=-L}else{yTop=e+str.lb/100;yBot=e-str.Larm/100}
+    const h=yTop-yBot, cy=(yTop+yBot)/2, dist=Math.max(h*1.45,D*6,1.2);
+    controls.target.set(0,cy,0); camera.position.set(dist*0.55,cy+dist*0.18,dist*0.82); camera.near=dist/200; camera.far=dist*20; camera.updateProjectionMatrix(); controls.update();
+  }
+  host.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>fit(b.dataset.view));
+  const tog=(btn,key)=>btn.onclick=()=>{const on=btn.getAttribute("aria-pressed")!=="true";btn.setAttribute("aria-pressed",on);if(groups[key])groups[key].visible=on};
+  tog($("tgConcrete"),"concrete"); tog($("tgSoil"),"soil");
+  return {build,resize};
+})();
+
+/* expõe para conferência no console */
+window.__estacas={capacity,structural,get state(){return state},PILES,SOILS};
+syncInputs(); recompute(true);
+</script>
+
+</body>
+</html>
